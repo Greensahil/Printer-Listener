@@ -65,6 +65,9 @@ app.use(express.static(__dirname+ "/public/src"));
 
 var currentQC 
 
+
+
+
 async function checkPrintNeed(){
 
     try{
@@ -72,7 +75,7 @@ async function checkPrintNeed(){
 
         if(currentQC != rows[0].value){
             currentQC = rows[0].value
-            
+            console.log(currentQC)
             let qcNum= 'asdasd'
             let userName = 'asdasdasd'           
             console.log(`IT SHOULD BE PRINTING NOW`)
@@ -156,9 +159,12 @@ async function checkPrintNeed(){
 }
 
 
-checkPrintNeed()
 
 
+setInterval(() => {
+  console.log(`Run every 5 seconds`)
+  checkPrintNeed()
+}, 5000);
 
 
 
