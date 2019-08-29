@@ -71,14 +71,33 @@ var currentQC
 async function checkPrintNeed(){
 
     try{
-        rows = await pool.query (`Select value from counters where type = "QC"`)
+        qc = await pool.query (`Select value from counters where type = "QC"`);
+        // currentQC =rows[0].value
+        // console.log(currentQC)
 
-        if(currentQC != rows[0].value){
-            currentQC = rows[0].value
-            console.log(currentQC)
-            let qcNum= 'asdasd'
-            let userName = 'asdasdasd'           
-            console.log(`IT SHOULD BE PRINTING NOW`)
+        
+
+
+
+
+        if(currentQC != qc[0].value){
+
+          currentQC = qc[0].value
+          rows = await pool.query (`select userName, partNumber, OrderDate from orders
+                                  inner join orderDetail on orders.orderID = orderDetail.orderID
+                                  inner join users on orderDetail.userID = users.ID
+                                  inner join parts on parts.partID = orderDetail.partID
+                                  where orders.orderNumber= 'QC - ${qc[0].value}';`)
+
+
+
+
+            let qcNum= 'QC - ' + qc[0].value
+            let userName = rows[0].userName
+            let partNumber=rows[0].partNumber
+            let orderDate = rows[0].OrderDate
+
+            
             var labelXml = `<?xml version="1.0" encoding="utf-8"?>
             <DieCutLabel Version="8.0" Units="twips">
               <PaperOrientation>Portrait</PaperOrientation>
@@ -106,12 +125,23 @@ async function checkPrintNeed(){
                   <Verticalized>False</Verticalized>
                   <StyledText>
                     <Element>
-                      <String xml:space="preserve">QC NUM: ${qcNum}
-            Verfied by : ${userName}
-            
+                      <String xml:space="preserve">Q.C. INITIALS:
+            JOHN DOE
+            DATE INSPECTED:
+            0/0/0
+            ASSEMBLYID:
+            PARTNUMBER
             </String>
                       <Attributes>
                         <Font Family="Arial" Size="12" Bold="False" Italic="False" Underline="False" Strikeout="False" />
+                        <ForeColor Alpha="255" Red="0" Green="0" Blue="0" HueScale="100" />
+                      </Attributes>
+                    </Element>
+                    <Element>
+                      <String xml:space="preserve">ORDERNUMBER
+            </String>
+                      <Attributes>
+                        <Font Family="Arial" Size="12" Bold="True" Italic="False" Underline="False" Strikeout="False" />
                         <ForeColor Alpha="255" Red="0" Green="0" Blue="0" HueScale="100" />
                       </Attributes>
                     </Element>
@@ -125,7 +155,7 @@ async function checkPrintNeed(){
                   <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />
                   <BackColor Alpha="0" Red="255" Green="255" Blue="255" />
                   <LinkedObjectName />
-                  <Rotation>Rotation0</Rotation>
+                  <Rotation>Rotation90</Rotation>
                   <IsMirrored>False</IsMirrored>
                   <IsVariable>False</IsVariable>
                   <GroupID>-1</GroupID>
@@ -137,9 +167,36 @@ async function checkPrintNeed(){
                   <HorizontalAlignment>Center</HorizontalAlignment>
                   <VerticalAlignment>Center</VerticalAlignment>
                 </ImageObject>
-                <Bounds X="636.760563380284" Y="934.225352112678" Width="2018.02816901409" Height="720" />
+                <Bounds X="58" Y="184.436619718311" Width="720" Height="1490.70422535211" />
+              </ObjectInfo>
+              <ObjectInfo>
+                <BarcodeObject>
+                  <Name>BARCODE</Name>
+                  <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />
+                  <BackColor Alpha="0" Red="255" Green="255" Blue="255" />
+                  <LinkedObjectName />
+                  <Rotation>Rotation0</Rotation>
+                  <IsMirrored>False</IsMirrored>
+                  <IsVariable>True</IsVariable>
+                  <GroupID>-1</GroupID>
+                  <IsOutlined>False</IsOutlined>
+                  <Text>12345</Text>
+                  <Type>Code39</Type>
+                  <Size>Medium</Size>
+                  <TextPosition>Bottom</TextPosition>
+                  <TextFont Family="Arial" Size="8" Bold="False" Italic="False" Underline="False" Strikeout="False" />
+                  <CheckSumFont Family="Arial" Size="8" Bold="False" Italic="False" Underline="False" Strikeout="False" />
+                  <TextEmbedding>None</TextEmbedding>
+                  <ECLevel>0</ECLevel>
+                  <HorizontalAlignment>Center</HorizontalAlignment>
+                  <QuietZonesPadding Left="0" Top="0" Right="0" Bottom="0" />
+                </BarcodeObject>
+                <Bounds X="776.239436619718" Y="1479.76056338028" Width="2068.73239436619" Height="233.239436619717" />
               </ObjectInfo>
             </DieCutLabel>`;
+
+
+            console.log(`PRINTS`)
         
         dymo.print('DYMO LabelWriter 450', labelXml)
         .then((result) => {
@@ -148,6 +205,8 @@ async function checkPrintNeed(){
         .catch((err) => {
           throw err;
         });
+
+
         }
         
     }
@@ -160,13 +219,10 @@ async function checkPrintNeed(){
 
 
 
-
 setInterval(() => {
   console.log(`Run every 5 seconds`)
   checkPrintNeed()
 }, 5000);
-
-
 
 
 
