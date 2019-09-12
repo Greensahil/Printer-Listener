@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Will be a temporary comm platform for heroku",
   "main": "app.js",
+  "bin":"app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,5 +25,6 @@
     "mysql": "^2.16.0",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0"
+    
   }
 }
