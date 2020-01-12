@@ -14,7 +14,10 @@
 
       body{
          font-size: 14px;
+         word-wrap: break-word;
       }
+
+
 
 
     </style>
@@ -35,7 +38,7 @@
             <div class="col-3">
                <div class="row">
                   <div class="col-12">
-                     <img class="logo" style="height: 100%;width: 100%;" src="img/logo.jpg">
+                     <img class="logo" style="height: 100%;width: 100%;" src="/img/logo.jpg">
                   </div>
                   <div class="col-12">
                      <div>632c College Dr.</div>
@@ -55,8 +58,8 @@
             </div>
             <div class="col-6">
                <div class="row">
-                  <div class="col-4 border-right border-bottom  border-secondary">Truck Number: <storng><%=  template[0].TruckNumber  %></storng></div>
-                  <div class="col-4 border-right border-bottom  border-secondary">Trailer Number: <strong><%=  template[0].trailerNumber  %></strong></div>
+                  <div class="col-4 border-right border-bottom  border-secondary">Truck Number: <%=  template[0].TruckNumber  %></div>
+                  <div class="col-4 border-right border-bottom  border-secondary">Trailer Number: <%=  template[0].trailerNumber  %></div>
                   <div class="col-4 border-right border-bottom  border-secondary">Seal Number(s)</div>
                </div>
                <div class="row">
@@ -64,8 +67,8 @@
                   <div class="col-6 border-right  border-secondary">Time:</div>
                </div>
                <div class="row">
-                  <div class="col-12 border border-left-0  border-secondary">Customer Job No.: <strong><%=  template[0].CustomerJobNumber  %></strong></div>
-                  <div class="col-12">Customer P/O No.:<strong><%=  template[0].CustomerPONumber  %></strong></div>
+                  <div class="col-12 border border-left-0  border-secondary">Customer Job No.: <%=  template[0].CustomerJobNumber  %></div>
+                  <div class="col-12">Customer P/O No.:<%=  template[0].CustomerPONumber  %></div>
                </div>
             </div>
          </div>
@@ -126,12 +129,12 @@
             </div>
          </div>
          <div class="row">
-            <div class="col-6 text-center border border-secondary">
-               <table style="width: 100%;">
+            <div class="col-6 text-center border border-secondary" style="padding: 0px;">
+               <table class="table table-sm table-striped" style="width: 100%;">
                   <thead>
-                      <tr>
-                          <th colspan="2">PartNumber</th>
-                          <th colspan="2">Qty Shipped</th>
+                      <tr class="no-gutters">
+                          <th scope="col">PartNumber</th>
+                          <th scope="col">Qty Shipped</th>
 
                       </tr>
                   </thead>
