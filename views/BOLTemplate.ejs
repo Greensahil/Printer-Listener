@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paper-css/0.3.0/paper.css">
+    <title>BOL Template</title>
+    <style>
+       @page { size: A4 }
+
+      body{
+         font-size: 14px;
+      }
+
+
+    </style>
+  </head>
+  <body class="A4">
+   <section class="sheet padding-10mm">
+      <div class="billOfLadingContainer" id="element-to-print" style="background-color: white;">
+         <div class="text-center">BILL OF LADING</div>
+         <div class="row">
+            <div class="col-6 text-center" style="background-color: black;color: white;">SHIP FROM</div>
+            <div class="col-6">
+               <div class="row">
+                  <div class="col-3 border border-secondary"></div>
+                  <div class="col-4 border-top border-bottom border-secondary"><%= customerOrderNumber %></div>
+                  <div class="col-5 border border-secondary">Carrier Name: TQAI</div>
+               </div>
+            </div>
+            <div class="col-3">
+               <div class="row">
+                  <div class="col-12">
+                     <img class="logo" style="height: 100%;width: 100%;" src="img/logo.jpg">
+                  </div>
+                  <div class="col-12">
+                     <div>632c College Dr.</div>
+                     <div>Marion, NC   28752</div>
+                     <div>Phone: 828-652-0799</div>
+                     <div>Fax:  828-652-0804</div>
+                  </div>
+               </div>
+            </div>
+            <div class="col-3">
+               <div class="row border border-secondary" style="height: 100%;">
+                  <div>Freight Charge Terms:</div>
+                  <div>Prepaid:______________</div>
+                  <div>Collect:______________</div>
+                  <div>3rd Party:______________</div>
+               </div>
+            </div>
+            <div class="col-6">
+               <div class="row">
+                  <div class="col-4 border-right border-bottom  border-secondary">Truck Number: <storng><%=  template[0].TruckNumber  %></storng></div>
+                  <div class="col-4 border-right border-bottom  border-secondary">Trailer Number: <strong><%=  template[0].trailerNumber  %></strong></div>
+                  <div class="col-4 border-right border-bottom  border-secondary">Seal Number(s)</div>
+               </div>
+               <div class="row">
+                  <div class="col-6 border-right  border-secondary">Date:</div>
+                  <div class="col-6 border-right  border-secondary">Time:</div>
+               </div>
+               <div class="row">
+                  <div class="col-12 border border-left-0  border-secondary">Customer Job No.: <strong><%=  template[0].CustomerJobNumber  %></strong></div>
+                  <div class="col-12">Customer P/O No.:<strong><%=  template[0].CustomerPONumber  %></strong></div>
+               </div>
+            </div>
+         </div>
+         <div class="row" style="background-color: black;">
+            <div class="col-12">
+                  &nbsp;
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-6 border border-secondary">
+               <div class="row">
+                  <div class="col-12 text-center">
+                     <strong>SHUTTLE TO RECEIVING DOCK </strong>
+                  </div>
+                  <div class="col-12">
+                     Address: 1103 JAMESTOWN ROAD
+                  </div>
+                  <div class="col-12">
+                     State/City/Zip:
+                  </div>
+               </div>
+              
+               <div class="row">
+                  <div class="col-6">
+                     Cisco Code: TQAE
+                  </div>
+                  <div class="col-6">
+                     FOB:
+                  </div>
+               </div>
+               
+            </div>
+            <div class="col-6 text-center">
+               <div class="row border-right  border-secondary">
+                  <div class="col-12">
+                     PO BOX 61050
+                  </div>
+                  <div class="col-12">
+                     Name: c/o DATA LOGISTICS
+                  </div>
+                  <div class="col-12">
+                     Address: PO BOX 61050
+                  </div>
+                  <div class="col-12">
+                     City/State/Zip: FORT MEYERS, FL 39906
+                  </div>
+     
+               </div>
+            </div>
+     
+         </div>
+         <div class="row text-center" style="background-color: black;color: white;">
+            <div class="col-6">
+                  QQ
+            </div>
+            <div class="col-6">
+               CARRIER INFORMATION  
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-6 text-center border border-secondary">
+               <table style="width: 100%;">
+                  <thead>
+                      <tr>
+                          <th colspan="2">PartNumber</th>
+                          <th colspan="2">Qty Shipped</th>
+
+                      </tr>
+                  </thead>
+                  <tbody id="BOLpartsShippedBody">
+                  </tbody>
+              </table>
+            </div>
+            <div class="col-6 text-center border border-secondary">
+                  0243
+            </div>  
+         </div>
+         <div class="row" style="background-color: grey;">
+            <div class="col-12">
+                  &nbsp;
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-4 border border-secondary">
+               <div class="col-12 text-center">
+                  <strong>Shipper Signature/Date</strong>
+               </div>
+               <canvas id="signature-pad" width="400" height="200"></canvas>
+     
+               <div>
+                 
+               </div>
+               <small>This is to certify that the above named materials are properly classified, packaged, marked and labeled, and are in proper condition for transportation according to the applicable regulations of the DOT</small>
+            </div>
+            <div class="col-4 border-bottom border-secondary">
+                  <div class="row">
+                     <div class="col-6">
+                        <u>Trailer Loaded:</u>
+                     </div>
+                     <div class="col-6">
+                        <u>Freight Counted:</u>
+                     </div>
+                     <div class="col-6 ">
+                        <div class="d-flex"><span class="box black mr-2"></span> Shipper</div>
+                        <div><span class="box  mr-2"></span>By Driver</div>
+                     </div>
+                     <div class="col-6">
+                        <div class="d-flex"><span class="box black mr-2"></span>By Shipper</div>
+                        <div class="d-flex"><span class="box mr-2"></span>By Driver/pallets said to contain</div>
+                        <div><span class="box mr-2"></span>By Driver/Pieces</div>
+                     </div>
+     
+                  </div>
+            </div>
+            <div class="col-4 border border-secondary">
+               <div class="col-12 text-center">
+                  <strong>Recipient Signature/Date</strong>
+               </div>
+              
+               <small>This is to certify that the above named materials are properly classified, packaged, marked and labeled, and are in proper condition for transportation according to the applicable regulations of the DOT</small>
+     
+            </div>
+     
+         </div>   
+         
+     
+      </div>
+
+   </section>
+ 
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded",function(){
+      
+      let partsShipped = <%- JSON.stringify(templateData) %>
+
+      for (let item of partsShipped){
+         $("#BOLpartsShippedBody").append(`<tr>
+            <td>
+                  ${item.partNumber}
+            </td>
+            <td>
+                  ${item.QtyShipped}
+            </td>
+         </tr>`)
+      }
+
+      })
+    </script>
+
+
+  </body>
+</html>

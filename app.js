@@ -6,21 +6,35 @@ const mysql = require('mysql');
 const flash = require('connect-flash')
 const passport = require('passport');
 const cookieSession = require('cookie-session');
+const puppeteer = require('puppeteer');
+let childProcess = require('child_process');
 
 const dotenv = require('dotenv');
-
-
+let fs = require('fs');
 dotenv.config();
 
 console.log(process.env.db_dev_user)
 
+app.use(morgan('dev'))
+
+//Setup public directory
+
+app.use(express.static(__dirname+ "/public"));
+
+
+app.use(express.static(__dirname+ "/public/src"));
 
 const keys = require('./config/keys');
 const pool = require('./middleware/database')
 const counter = require('./src/counter')
 
-const Dymo = require('dymojs');
-dymo = new Dymo();
+//const Dymo = require('dymojs');
+const Dymo = require('./myDymo')
+let dymo = new Dymo();
+
+
+
+
 
 const middleware = require('./middleware/index')
 
@@ -63,14 +77,63 @@ app.use(express.static(__dirname + "/public/src"));
 //Get all the info from the orderDetauls table inner join orders table on orderID
 
 
+
+async function checkBOLNeed() {
+	let printerID, printerName
+	try {
+
+		//Figure out a way to retrieve workstation name from file
+		// dymo.getPrinters()
+		// 	.then((printersResponseText) => {
+		// 		expect(printersResponseText).to.not.be.undefined;
+		// 		expect(printersResponseText.length).to.be.greaterThan(0);
+		// 		done();
+		// 	});
+		// printersname = await dymo.getPrinters()
+		// console.log(printersname)
+		//Get ID, PrinterName and XML
+    rows = await pool.query(`Select ID, Printer, XML from printer where Station = 'BOL'`)
+		printerID = rows[0].ID
+		printerName = rows[0].Printer
+
+
+	// 	xml = rows[0].XML
+
+
+	// 	// console.log(xml)
+
+		rows = await pool.query(`Select orderNumber from printerqueue where PrinterID = ${printerID}`)
+    	//console.log(rows)
+		if (rows[0]) {
+			for (let i = 0; i < rows.length; i++) {
+				printPDF(rows[i].orderNumber)
+				//printLabel(rows[i].orderNumber, xml,'DYMO LabelWriter 4XL (Copy 1)')				
+			}
+		}
+	
+	} catch (err) {
+		console.log(err)
+	}
+
+
+}
+
+
 async function checkPrintNeed() {
 	let printerID, xml, printerName
 	try {
 
 		//Figure out a way to retrieve workstation name from file
-
+		// dymo.getPrinters()
+		// 	.then((printersResponseText) => {
+		// 		expect(printersResponseText).to.not.be.undefined;
+		// 		expect(printersResponseText.length).to.be.greaterThan(0);
+		// 		done();
+		// 	});
+		// printersname = await dymo.getPrinters()
+		// console.log(printersname)
 		//Get ID, PrinterName and XML
-		rows = await pool.query(`Select ID, Printer, XML from printer where Station = 'QC'`)
+    rows = await pool.query(`Select ID, Printer, XML from printer where Station = 'QC'`)
 		printerID = rows[0].ID
 		printerName = rows[0].Printer
 
@@ -81,15 +144,13 @@ async function checkPrintNeed() {
 		// console.log(xml)
 
 		rows = await pool.query(`Select orderNumber from printerqueue where PrinterID = ${printerID}`)
-
+    	console.log(rows)
 		if (rows[0]) {
 			for (let i = 0; i < rows.length; i++) {
-				printLabel(rows[i].orderNumber, xml)
+				printLabel(rows[i].orderNumber, xml,printerName)
+				//printLabel(rows[i].orderNumber, xml,'DYMO LabelWriter 4XL (Copy 1)')				
 			}
-
 		}
-
-
 	} catch (err) {
 		console.log(err)
 	}
@@ -97,8 +158,11 @@ async function checkPrintNeed() {
 
 }
 
+// dymo.getPrinters().then(function(data){
+// 	console.log(data)
+// })
 
-async function printLabel(orderNumber, xml) {
+async function printLabel(orderNumber, xml,printerName) {
 
 	try {
 		rows = await pool.query(`select userName, partNumber, OrderDate from orders
@@ -113,32 +177,33 @@ async function printLabel(orderNumber, xml) {
 		let partNumber = rows[0].partNumber
 		let orderDate = rows[0].OrderDate.split(" ")[0] //Removing the minutes, seconds and milliseconds so that it fits in the label
 
-		console.log(orderDate)
+		// console.log(orderDate)
 
 
-		console.log(qcNum)
-		console.log(userName)
-		console.log(orderDate)
-		console.log(partNumber)
+		// console.log(qcNum)
+		// console.log(userName)
+		// console.log(orderDate)
+		// console.log(partNumber)
 
 
 		mapObj = {
-			XXXqcNumXXX: qcNum,
+			XXXQCNUMXXX: qcNum,
 			XXXuserNameXXX: userName,
 			XXXorderDateXXX: orderDate,
-			XXXpartNumberXXX: partNumber,
+			XXXPARTNUMBERXXX: partNumber,
 		}
 
-		labelXml = xml.replace(/XXXqcNumXXX|XXXuserNameXXX|XXXorderDateXXX|XXXpartNumberXXX/gi, function (matched) {
+		labelXml = xml.replace(/XXXQCNUMXXX|XXXuserNameXXX|XXXorderDateXXX|XXXPARTNUMBERXXX/gi, function (matched) {
 			return mapObj[matched]
 		})
 
-		console.log(labelXml)
+		// console.log(labelXml)
 
-		console.log(`PRINTS ${qcNum}`)
+		dymo.print(printerName, labelXml).then(result => console.log(result));
 
-		// dymo.print('DYMO LabelWriter 4XL', labelXml)
+		// dymo.print(printerName, labelXml)
 		// .then((result) => {
+		//   console.log(printerName)
 		//   console.log(result);
 		// })
 		// .catch((err) => {
@@ -155,37 +220,79 @@ async function printLabel(orderNumber, xml) {
 
 }
 
+// async function printBOL(orderNumber,printerName) {
 
-// async function checkPrintNeed(){
-
-//     try{
-//         qc = await pool.query (`Select value from counters where type = "QC"`);
-//         // currentQC =rows[0].value
-//         // console.log(currentQC)
-
-//         reprint = await pool.query(`Select value from reprint where type = "QC" `)
-//         console.log(reprint[0].value)
-//         if(currentQC != qc[0].value){
-//           currentQC = qc[0].value
-//           printLabel(currentQC)
-//         }
-//         if(reprintQC != reprint[0].value){
-//           reprintQC = reprint[0].value
-//           printLabel(reprintQC)
-//         }
-
-//     }
-
-//     catch(err){
-//         console.log(err)
-//     }
+// 	try {
+// 		printPDF(orderNumber)
+// 	} catch (err) {
+// 		console.log(err)
+// 	}
 
 // }
+
+
+
+async function printPDF(orderNumber) {
+	try {
+		const browser = await puppeteer.launch({
+			headless: true
+		});
+		const page = await browser.newPage();
+		await page.goto(`http://localhost:9000/BOL?orderNumber=${orderNumber}`, {
+			waitUntil: 'networkidle0'
+		});
+		// const pdf = await page.pdf({ format: 'A4' });
+		const pdfConfig = {
+			path: 'BOL.pdf', // Saves pdf to disk. 
+			format: 'A4',
+			printBackground: true,
+			margin: { // Word's default A4 margins
+				top: '2.54cm',
+				bottom: '2.54cm',
+				left: '0 cm',
+				right: '0 cm'
+			}
+		};
+
+		await page.emulateMedia('screen');
+		const pdf = await page.pdf(pdfConfig); // Return the pdf buffer. Useful for saving the file not to disk. 
+		await browser.close();
+
+
+		childProcess.exec('PDFtoPrinter.exe "BOL.pdf"', function (err, stdout, stderr) {
+			if (err) {
+				console.error(err);
+				return;
+			}
+			// fs.unlink('BOL.pdf', function (err) {
+			// 	if (err && err.code == 'ENOENT') {
+			// 		// file doens't exist
+			// 		console.info("File doesn't exist, won't remove it.");
+			// 	} else if (err) {
+			// 		// other errors, e.g. maybe we don't have enough permission
+			// 		console.error("Error occurred while trying to remove file");
+			// 	} else {
+			// 		console.info(`removed`);
+			// 	}
+			// });
+			// console.log(stdout);
+			// // process.exit(0);// exit process once it is opened
+			// }) 
+
+			console.log(`${orderNumber} saved to the folder`)
+
+			return pdf;
+		})
+	} catch (err) {
+		console.log(err)
+	}
+
+}
 
 var printerResponseTime
 
 setInterval(() => {
-	pool.query(`Select value from printerconfig where config ='Response-time'`).then((rows) => {
+	pool.query(`Select value from defaultConfig where config ='Response-time'`).then((rows) => {
 			if (rows[0].value != printerResponseTime) {
 				printerResponseTime = rows[0].value
 				setInterval(() => {
@@ -198,6 +305,12 @@ setInterval(() => {
 			console.log(err)
 		})
 }, 2000);
+
+
+setInterval(() => {
+	checkBOLNeed()
+}, 5000);
+
 
 
 //Configure passport global object
@@ -222,8 +335,36 @@ app.use(passport.session())
 // require('./routes/passport.js');          //Passport configuaration stored in this file
 
 
-app.post("/", (req, res) => {
-	console.log('post request was sent from another nodejs severs')
+app.get('/BOL', async (req, res) => {
+	let orderNumber = req.query.orderNumber
+	console.log(orderNumber)
+	try{
+		orderID = await pool.query(`Select orderID from orders where orderNumber = '${orderNumber}'`)
+
+		templateData = await pool.query(`Select orders.*,orderdetail.*,partNumber from orders 
+					   inner join orderdetail on orders.orderID = orderdetail.orderID	
+					   inner join parts on parts.partID = orderdetail.partID
+					   where orders.orderID = ${orderID[0].orderID}`)	
+					   	
+		console.log(templateData)
+
+		let customerOrderNumber = await pool.query(`Select orderNumber from orders where fulfillID = ${orderID[0].orderID}`)
+
+		console.log(customerOrderNumber)
+
+		res.render('BOLTemplate.ejs', {template:templateData,customerOrderNumber:customerOrderNumber[0].orderNumber})
+		
+		await pool.query(`Delete from printerqueue where orderNumber = '${orderNumber}'`)
+
+	}
+	catch(err){
+		console.log(err)
+	}
+    
+})
+
+app.listen(process.env.PORT||9000,()=>{
+    console.log('Server is running on 9000!')
 })
 
 
@@ -231,3 +372,29 @@ process.on('unhandledRejection', (error, p) => { //I added this so that I can co
 	console.log('=== UNHANDLED REJECTION ==='); // Not good to have undhandled promise rejection in code. This will just help me locate it incase here is one
 	console.dir(error.stack);
 });
+
+
+// 
+
+// labelXml = labelXml.Remove(0, _byteOrderMarkUtf8.Length);
+
+
+
+
+// dymo.print('DYMO LabelWriter 4XL (Copy 1)', labelXml).then(result => console.log(result));
+
+
+// var printJob = label.printAndPollStatus(printer.name, null, labelSet.toString(), function(printJob, printJobStatus)
+// {
+//    // output status
+//    var statusStr = 'Job Status: ' + printJobStatus.statusMessage;
+//    var result = (printJobStatus.status != dymo.label.framework.PrintJobStatus.ProcessingError 
+//                 && printJobStatus.status != dymo.label.framework.PrintJobStatus.Finished);
+
+//    // reenable when the job is done (either success or fail)
+//    printButton.disabled = result;
+
+//    return result;           
+// }, 1000);
+
+// console.log(printJob)
