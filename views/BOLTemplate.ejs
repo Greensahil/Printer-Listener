@@ -17,8 +17,14 @@
          word-wrap: break-word;
       }
 
-
-
+      .box{
+         height: 20px;
+         width: 20px;
+         border: 1px solid black;
+      }
+      .filled{
+         background-color: black;
+      }
 
     </style>
   </head>
@@ -63,8 +69,8 @@
                   <div class="col-4 border-right border-bottom  border-secondary">Seal Number(s)</div>
                </div>
                <div class="row">
-                  <div class="col-6 border-right  border-secondary">Date:</div>
-                  <div class="col-6 border-right  border-secondary">Time:</div>
+                  <div class="col-6 border-right  border-secondary">Date:<span id="currentDate"></span></div>
+                  <div class="col-6 border-right  border-secondary">Time:<span id="currentTime"></span></div>
                </div>
                <div class="row">
                   <div class="col-12 border border-left-0  border-secondary">Customer Job No.: <%=  template[0].CustomerJobNumber  %></div>
@@ -81,7 +87,7 @@
             <div class="col-6 border border-secondary">
                <div class="row">
                   <div class="col-12 text-center">
-                     <strong>SHUTTLE TO RECEIVING DOCK </strong>
+                     <strong><%= templateData[0].ShippingAddress %></strong>
                   </div>
                   <div class="col-12">
                      Address: 1103 JAMESTOWN ROAD
@@ -93,10 +99,10 @@
               
                <div class="row">
                   <div class="col-6">
-                     Cisco Code: TQAE
+                     Cisco Code: <%= templateData[0].CiscoCode %>
                   </div>
-                  <div class="col-6">
-                     FOB:
+                  <div class="col-6 d-flex">
+                     FOB:<span class="box mr-2 FOB"></span>
                   </div>
                </div>
                
@@ -104,16 +110,16 @@
             <div class="col-6 text-center">
                <div class="row border-right  border-secondary">
                   <div class="col-12">
-                     PO BOX 61050
+                     PO BOX <%= templateData[0].BillToPOBox %>
                   </div>
                   <div class="col-12">
-                     Name: c/o DATA LOGISTICS
+                     Name: <%= templateData[0].BillToName %>
                   </div>
                   <div class="col-12">
-                     Address: PO BOX 61050
+                     Address: PO BOX <%= templateData[0].BillToPOBox %>
                   </div>
                   <div class="col-12">
-                     City/State/Zip: FORT MEYERS, FL 39906
+                     City/State/Zip: <%= templateData[0].BillToCity %>
                   </div>
      
                </div>
@@ -165,20 +171,22 @@
             </div>
             <div class="col-4 border-bottom border-secondary">
                   <div class="row">
-                     <div class="col-6">
+                     <div class="col-12">
                         <u>Trailer Loaded:</u>
                      </div>
-                     <div class="col-6">
+                     <div class="col-6 ">
+                        <div class="d-flex "><span class="box mr-2 trailerLoadedByShipper"></span>By Shipper</div>
+                        <div class="d-flex " ><span class="box  mr-2 trailerLoadedByDriver"></span></span>By Driver</div>
+                     </div>
+                  </div>
+                  <div class="row mt-4">
+                     <div class="col-12">
                         <u>Freight Counted:</u>
                      </div>
-                     <div class="col-6 ">
-                        <div class="d-flex"><span class="box black mr-2"></span> Shipper</div>
-                        <div><span class="box  mr-2"></span>By Driver</div>
-                     </div>
-                     <div class="col-6">
-                        <div class="d-flex"><span class="box black mr-2"></span>By Shipper</div>
-                        <div class="d-flex"><span class="box mr-2"></span>By Driver/pallets said to contain</div>
-                        <div><span class="box mr-2"></span>By Driver/Pieces</div>
+                     <div class="col-12">
+                        <div class="d-flex "><span class="box mr-2 freightCountedByShipper"></span>By Shipper</div>
+                        <div class="d-flex "><span class="box mr-2 freightCountedByDriverPallets"></span>By Driver/pallets said to contain</div>
+                        <div class="d-flex "><span class="box mr-2 freightCountedByDriverPieces"></span>By Driver/Pieces</div>
                      </div>
      
                   </div>
@@ -209,20 +217,57 @@
     <script>
       document.addEventListener("DOMContentLoaded",function(){
       
-      let partsShipped = <%- JSON.stringify(templateData) %>
+         let partsShipped = <%- JSON.stringify(templateData) %>
 
-      for (let item of partsShipped){
-         $("#BOLpartsShippedBody").append(`<tr>
-            <td>
-                  ${item.partNumber}
-            </td>
-            <td>
-                  ${item.QtyShipped}
-            </td>
-         </tr>`)
-      }
+         for (let item of partsShipped){
+            $("#BOLpartsShippedBody").append(`<tr>
+               <td>
+                     ${item.partNumber}
+               </td>
+               <td>
+                     ${item.QtyShipped}
+               </td>
+            </tr>`)
+         }
+
+
+         let today = new Date();
+         let dd = String(today.getDate()).padStart(2, '0');
+         let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+         let yyyy = today.getFullYear();
+
+         $("#currentDate").html(` ${mm}-${dd}-${yyyy}`);
+         $("#currentTime").html(` ${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`)
+
+         
+         let lineItem = partsShipped[0]
+         console.log(lineItem)
+         if(!lineItem.TrailerLoadedBy || lineItem.TrailerLoadedBy == 'Shipper'){
+            $(".trailerLoadedByShipper").addClass('filled')
+         }
+         else if(lineItem.TrailerLoadedBy == 'Driver'){
+            $(".trailerLoadedByDriver").addClass('filled')
+         }
+
+         if(!lineItem.FreightCountedBy || lineItem.FreightCountedBy == 'Shipper'){
+            $(".freightCountedByShipper").addClass('filled')
+         }
+         else if(lineItem.FreightCountedBy == 'Driver/pallets said to contain'){
+            $(".freightCountedByDriverPallets").addClass('filled')
+         }
+         else if(lineItem.FreightCountedBy == 'By Driver/Pieces'){
+            $(".freightCountedByDriverPieces").addClass('filled')
+         }
+         
+         //FOB
+         if(lineItem.FOB == 'Yes'){
+            $(".FOB").addClass('filled')
+         }
 
       })
+
+  
+
     </script>
 
 

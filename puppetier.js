@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 async function printPDF() {
     try{
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     await page.goto('http://localhost:9000/BOL', {waitUntil: 'networkidle0'});
     // const pdf = await page.pdf({ format: 'A4' });

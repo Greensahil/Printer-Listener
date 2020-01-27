@@ -7,3 +7,5 @@ childProcess.exec('PDFtoPrinter.exe "00.pdf"', function (err, stdout, stderr) {
     console.log(stdout);
     process.exit(0);// exit process once it is opened
 }) 
+
+

@@ -336,21 +336,23 @@ app.use(passport.session())
 
 
 app.get('/BOL', async (req, res) => {
-	let orderNumber = req.query.orderNumber
+	let orderNumber = req.query.orderNumber    
 	console.log(orderNumber)
 	try{
-		orderID = await pool.query(`Select orderID from orders where orderNumber = '${orderNumber}'`)
 
+		orderID = await pool.query(`Select orderID from orders where orderNumber = '${orderNumber}'`)
+		//console.log(`Select orderID from orders where orderNumber = '${orderNumber}'`)
 		templateData = await pool.query(`Select orders.*,orderdetail.*,partNumber from orders 
-					   inner join orderdetail on orders.orderID = orderdetail.orderID	
-					   inner join parts on parts.partID = orderdetail.partID
+					   left join orderdetail on orders.orderID = orderdetail.orderID	
+					   left join parts on parts.partID = orderdetail.partID
 					   where orders.orderID = ${orderID[0].orderID}`)	
 					   	
-		console.log(templateData)
+		//console.log(templateData)
 
 		let customerOrderNumber = await pool.query(`Select orderNumber from orders where fulfillID = ${orderID[0].orderID}`)
 
-		console.log(customerOrderNumber)
+		//console.log(`Select orderNumber from orders where fulfillID = ${orderID[0].orderID}`)
+		// console.log(customerOrderNumber)
 
 		res.render('BOLTemplate.ejs', {template:templateData,customerOrderNumber:customerOrderNumber[0].orderNumber})
 		
