@@ -92,7 +92,7 @@ async function checkBOLNeed() {
 		// printersname = await dymo.getPrinters()
 		// console.log(printersname)
 		//Get ID, PrinterName and XML
-    rows = await pool.query(`Select ID, Printer, XML from printer where Station = 'BOL'`)
+    	rows = await pool.query(`Select ID, Printer, XML from printer where Station = 'BOL'`)
 		printerID = rows[0].ID
 		printerName = rows[0].Printer
 
@@ -122,17 +122,6 @@ async function checkBOLNeed() {
 async function checkPrintNeed() {
 	let printerID, xml, printerName
 	try {
-
-		//Figure out a way to retrieve workstation name from file
-		// dymo.getPrinters()
-		// 	.then((printersResponseText) => {
-		// 		expect(printersResponseText).to.not.be.undefined;
-		// 		expect(printersResponseText.length).to.be.greaterThan(0);
-		// 		done();
-		// 	});
-		// printersname = await dymo.getPrinters()
-		// console.log(printersname)
-		//Get ID, PrinterName and XML
     rows = await pool.query(`Select ID, Printer, XML from printer where Station = 'QC'`)
 		printerID = rows[0].ID
 		printerName = rows[0].Printer
@@ -199,7 +188,12 @@ async function printLabel(orderNumber, xml,printerName) {
 
 		// console.log(labelXml)
 
-		dymo.print(printerName, labelXml).then(result => console.log(result));
+		dymo.print(printerName, labelXml).
+		then(async (result) =>{
+			await pool.query(`Delete from printerqueue where orderNumber = '${qcNum}'`)
+			console.log(result)
+			} 
+		);
 
 		// dymo.print(printerName, labelXml)
 		// .then((result) => {
@@ -209,10 +203,6 @@ async function printLabel(orderNumber, xml,printerName) {
 		// .catch((err) => {
 		//   throw err;
 		// });
-
-
-		await pool.query(`Delete from printerqueue where orderNumber = '${qcNum}'`)
-
 
 	} catch (err) {
 		console.log(err)
@@ -248,7 +238,7 @@ async function printPDF(orderNumber) {
 			printBackground: true,
 			margin: { // Word's default A4 margins
 				top: '2.54cm',
-				bottom: '2.54cm',
+				// bottom: '2.54cm',
 				left: '0 cm',
 				right: '0 cm'
 			}
@@ -259,37 +249,38 @@ async function printPDF(orderNumber) {
 		await browser.close();
 
 
-		childProcess.exec('PDFtoPrinter.exe "BOL.pdf"', function (err, stdout, stderr) {
-			if (err) {
-				console.error(err);
-				return;
-			}
-			// fs.unlink('BOL.pdf', function (err) {
-			// 	if (err && err.code == 'ENOENT') {
-			// 		// file doens't exist
-			// 		console.info("File doesn't exist, won't remove it.");
-			// 	} else if (err) {
-			// 		// other errors, e.g. maybe we don't have enough permission
-			// 		console.error("Error occurred while trying to remove file");
-			// 	} else {
-			// 		console.info(`removed`);
-			// 	}
-			// });
-			// console.log(stdout);
-			// // process.exit(0);// exit process once it is opened
-			// }) 
+		// childProcess.exec('PDFtoPrinter.exe "BOL.pdf"', function (err, stdout, stderr) {
+		// 	if (err) {
+		// 		console.error(err);
+		// 		return;
+		// 	}
+		// 	fs.unlink('BOL.pdf', function (err) {
+		// 		if (err && err.code == 'ENOENT') {
+		// 			// file doens't exist
+		// 			console.info("File doesn't exist, won't remove it.");
+		// 		} else if (err) {
+		// 			// other errors, e.g. maybe we don't have enough permission
+		// 			console.error("Error occurred while trying to remove file");
+		// 		} else {
+		// 			console.info(`removed`);
+		// 		}
+		// 	});
+		// 	console.log(stdout);
+		// 	// process.exit(0);// exit process once it is opened
+		// 	// }) 
 
-			console.log(`${orderNumber} saved to the folder`)
+		// 	console.log(`${orderNumber} saved to the folder`)
 
-			return pdf;
-		})
+		// 	return pdf;
+		// })
 	} catch (err) {
 		console.log(err)
 	}
 
 }
 
-var printerResponseTime
+let printerResponseTime = 2;
+
 
 setInterval(() => {
 	pool.query(`Select value from defaultConfig where config ='Response-time'`).then((rows) => {
@@ -342,10 +333,11 @@ app.get('/BOL', async (req, res) => {
 
 		orderID = await pool.query(`Select orderID from orders where orderNumber = '${orderNumber}'`)
 		//console.log(`Select orderID from orders where orderNumber = '${orderNumber}'`)
-		templateData = await pool.query(`Select orders.*,orderdetail.*,partNumber from orders 
+		templateData = await pool.query(`Select orders.*,Sum(QtyShipped) as QtyShipped,partNumber from orders 
 					   left join orderdetail on orders.orderID = orderdetail.orderID	
 					   left join parts on parts.partID = orderdetail.partID
-					   where orders.orderID = ${orderID[0].orderID}`)	
+					   where orders.orderID = ${orderID[0].orderID}
+					   group by partNumber`)	
 					   	
 		//console.log(templateData)
 

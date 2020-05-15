@@ -10,7 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paper-css/0.3.0/paper.css">
     <title>BOL Template</title>
     <style>
-       @page { size: A4 }
+       /* @page { size: A4 } */
+      
+
+      html, body {
+      /* height:100vh;  */
+      margin: 0 !important; 
+      padding: 0 !important;
+      overflow: hidden;
+      }
+
 
       body{
          font-size: 14px;
@@ -26,9 +35,15 @@
          background-color: black;
       }
 
+      /* @media print {
+         p {page-break-inside: avoid;}
+         center {page-break-before: always;}
+         footer {page-break-after: always;}
+      } */
+
     </style>
   </head>
-  <body class="A4">
+  <body>
    <section class="sheet padding-10mm">
       <div class="billOfLadingContainer" id="element-to-print" style="background-color: white;">
          <div class="text-center">BILL OF LADING</div>
@@ -136,6 +151,7 @@
          </div>
          <div class="row">
             <div class="col-6 text-center border border-secondary" style="padding: 0px;">
+               <center></center>
                <table class="table table-sm table-striped" style="width: 100%;">
                   <thead>
                       <tr class="no-gutters">
@@ -191,15 +207,18 @@
      
                   </div>
             </div>
+           
             <div class="col-4 border border-secondary">
                <div class="col-12 text-center">
                   <strong>Recipient Signature/Date</strong>
                </div>
-              
+               <canvas id="signature-pad" width="400" height="200"></canvas>
+     
+               <div>
+                 
+               </div>
                <small>This is to certify that the above named materials are properly classified, packaged, marked and labeled, and are in proper condition for transportation according to the applicable regulations of the DOT</small>
-     
             </div>
-     
          </div>   
          
      
